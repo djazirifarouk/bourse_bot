@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  market-bot:
+    build: .
+    container_name: tunis_market_bot
+    env_file:
+      - .env
+    restart: unless-stopped
+    # no ports are required; bot uses polling to Telegram API
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

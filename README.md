@@ -1,62 +1,49 @@
-# IlBoursa Market Notifier — Roadmap & Implementation Plan
+# ilboursa Stock Scraper with MongoDB
 
-Project goal: build a Telegram bot + scheduler that scrapes ilboursa syntheses, notifies BUY/SELL opportunities twice daily (Tunis time), answers interactive commands sorted by "Potential", and supports extensions such as news sentiment analysis, persistence, multi-chat subscriptions, and analytics.
+Complete Docker setup to scrape stock data from ilboursa.com and store in MongoDB.
 
-## Project overview
+## 📁 Structure
+.
+├── docker-compose.yml              # One-time scrape setup
+├── docker-compose.scheduled.yml  # Automated hourly scraping
+├── scraper/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── scraper.py
 
-- Scrape: https://www.ilboursa.com/analyses/synthese_fiches  
-- Scheduled pushes: 09:30 and 15:00 Tunisia time (weekdays) containing ONLY BUY and SELL opportunities  
-- Instant command responses:
-  - `/what_to_buy`
-  - `/what_to_sell`
-  - `/what_to_keep`
-  - `/what_to_take_profit`  
-  Each reply sorted by "Potential" (descending)
-- Deployment: Docker + docker-compose
-- Extensions: news sentiment analysis, persistence/history, user subscriptions, monitoring
 
-## Tech stack
+## 🚀 Quick Start
 
-- Language: Python 3.11+  
-- Libraries:
-  - `requests`, `beautifulsoup4` (scraping)
-  - `python-telegram-bot` (Telegram integration)
-  - `pytz` (timezone)
-  - Optional: `sqlalchemy` / `sqlite` / `redis` (persistence & caching)
-  - Optional NLP: VADER/TextBlob or Transformer models (sentiment)
-- Container: Docker, docker-compose  
-- CI: GitHub Actions (lint, tests, build)  
-- Monitoring/logging: Docker logs (optionally Sentry / Prometheus + Grafana)
+### 1. One-time Scrape
+```bash
+docker-compose up --build
+```
+This will:
+- Start MongoDB on port 27017
+- Run scraper once
+- Save data to MongoDB
+- Start MongoDB Express on http://localhost:8081
+### 2. Scheduled Scraping (every hour)
+```
+docker-compose -f docker-compose.scheduled.yml up --build -d
+```
+### 3. View Data
+- MongoDB Express: http://localhost:8081 (user: user, pass: pass)
+- Connect via MongoDB Compass: mongodb://admin:password123@localhost:27017/
 
-## Repo structure (suggested)
-
-- README.md (this file)  
-- notifier_bot.py (core bot + scheduled jobs)  
-- scraper.py (scraping & parsing logic)  
-- sentiment.py (news sentiment utilities)  
-- utils.py (cache, helpers, logging)  
-- Dockerfile  
-- docker-compose.yml  
-- .env.example  
-- tests/
-  - test_scraper.py
-  - test_parser.py
-  - test_bot_handlers.py
-- docs/
-  - design.md
-  - api.md
-- scripts/
-  - deploy.sh
-  - local_run.sh
-
-## Environment variables (.env)
-
-Create a `.env` (never commit secrets). Example:
-
-```env
-TELEGRAM_BOT_TOKEN=123456:ABCDEF-your-bot-token
-TELEGRAM_CHAT_ID=987654321     # numeric chat id for scheduled pushes (user or group)
-CACHE_TTL=300                  # seconds
-LOG_LEVEL=INFO
-SENTIMENT_MODEL=distilbert-base-uncased-finetuned-sst-2-english
-DATABASE_URL=sqlite:///data/bot.db
+## 🔧 Configuration
+MongoDB Credentials
+- Root Username: admin
+- Root Password: password123
+- Database: ilboursa_db
+- Collection: stocks
+Data Schema
+```
+{
+  "title": "AETECH",
+  "code": "AETEC",
+  "consensus": "60,33 DT",
+  "potential": "+7.74%",
+  "scraped_at": "2024-01-15T10:30:00Z"
+}
+```
